@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ordinal.third.coin.mapper.CoinMapper">
+
+    <select id="list" parameterType="CoinVO" resultType="CoinVO">
+        SELECT C.CONT_NO             AS contNo
+             , C.CTRY_NO             AS ctryNo
+             , C.COIN_NO             AS coinNo
+             , C.COIN_YEARS          AS coinYears
+             , C.COIN_YEAR2S         AS coinYear2s
+             , CONT.CODE_NAME        AS contName
+             , CTRY.CODE_NAME        AS ctryName
+             , CN.CODE_NAME          AS coinName
+             , CN.CODE_ETC           AS coinEtc
+             , COALESCE(CT.cnt, 0)   AS ctryCnt
+          FROM COIN C
+          LEFT JOIN CODE CONT ON CONT.CODE_DIV = 'CONT' AND CONT.CODE_NO = C.CONT_NO
+          LEFT JOIN CODE CTRY ON CTRY.CODE_DIV = 'CTRY' AND CTRY.CODE_NO = C.CTRY_NO
+          LEFT JOIN CODE CN ON CN.CODE_DIV = 'COIN' AND CN.CODE_NO = C.COIN_NO
+          LEFT JOIN (SELECT CTRY_NO, COUNT(*) AS cnt FROM COIN GROUP BY CTRY_NO) CT ON CT.CTRY_NO = C.CTRY_NO
+         ORDER BY C.CONT_NO, C.CTRY_NO, C.COIN_NO
+    </select>
+
+</mapper>

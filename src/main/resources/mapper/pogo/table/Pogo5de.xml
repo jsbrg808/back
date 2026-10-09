@@ -1,0 +1,124 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ordinal.third.pogo.table.mapper.Pogo5deMapper">
+
+    <select id="list" resultType="Pogo5deVO">
+WITH
+owned AS (
+    SELECT 'f' AS slot, SRL_NO, FORM_NO, GNDR, NO, IV FROM pogo_5f
+    UNION ALL
+    SELECT 's' AS slot, SRL_NO, FORM_NO, GNDR, NO, IV FROM pogo_5s
+    UNION ALL
+    SELECT 't' AS slot, SRL_NO, FORM_NO, GNDR, NO, IV FROM pogo_5t
+),
+bas_list AS (
+    SELECT DISTINCT pk.base_no AS base_no
+      FROM owned o
+      JOIN pokedex pk ON pk.no = o.no
+),
+dup_raw AS (
+    SELECT DISTINCT o.slot, pk.base_no, o.form_no
+      FROM owned o
+      JOIN pokedex pk ON pk.no = o.no
+     GROUP BY o.slot, pk.base_no, o.no, o.form_no
+    HAVING COUNT(*) > 2
+),
+dup AS (
+    SELECT slot, base_no, GROUP_CONCAT(form_no ORDER BY form_no SEPARATOR ',') AS dup
+      FROM dup_raw
+     GROUP BY slot, base_no
+),
+evo_ids AS (
+    SELECT pk.base_no AS base_no
+         , MAX(CASE WHEN pk.evl = 0 THEN pk.no END) AS id0
+         , MAX(CASE WHEN pk.evl = 1 THEN pk.no END) AS id1
+         , MAX(CASE WHEN pk.evl = 2 THEN pk.no END) AS id2
+      FROM pokedex pk
+      JOIN bas_list bl ON pk.base_no = bl.base_no
+     GROUP BY pk.base_no
+),
+iv100 AS (
+    SELECT o.slot, pk.base_no, o.gndr AS gen, pk.evl, o.no, o.form_no, o.srl_no, pk.beta
+      FROM owned o
+      JOIN pokedex pk ON pk.no = o.no
+     WHERE o.iv = 100
+),
+evo1_raw AS (
+    SELECT i.slot, i.base_no, i.gen
+         , GROUP_CONCAT(i.no * 100 + i.form_no ORDER BY i.form_no + i.beta, i.no ASC SEPARATOR ',') AS id_ord
+         , GROUP_CONCAT(i.no * 100 + i.form_no ORDER BY i.form_no + i.beta, i.srl_no DESC SEPARATOR ',') AS seq_ord
+      FROM iv100 i
+      JOIN evo_ids ei ON i.base_no = ei.base_no
+                     AND i.no = CASE i.evl WHEN 0 THEN ei.id0
+                                           WHEN 1 THEN ei.id1
+                                           WHEN 2 THEN ei.id2 END
+     GROUP BY i.slot, i.base_no, i.gen
+),
+evo2_raw AS (
+    SELECT i.slot, i.base_no, i.gen, i.evl
+         , GROUP_CONCAT(i.no * 100 + i.form_no ORDER BY i.form_no + i.beta, i.no DESC SEPARATOR ',') AS id_ord
+         , GROUP_CONCAT(i.no * 100 + i.form_no ORDER BY i.form_no + i.beta, i.srl_no DESC SEPARATOR ',') AS seq_ord
+      FROM iv100 i
+      JOIN bas_list bl ON i.base_no = bl.base_no
+     GROUP BY i.slot, i.base_no, i.gen, i.evl
+),
+evo2 AS (
+    SELECT slot, base_no, gen
+         , MAX(CASE WHEN id_ord &lt;&gt; seq_ord THEN '2' ELSE '' END) AS flag
+      FROM evo2_raw
+     GROUP BY slot, base_no, gen
+),
+evo_per_gender AS (
+    SELECT e2.slot, e2.base_no, e2.gen
+         , CONCAT(CASE WHEN e1.id_ord &lt;&gt; e1.seq_ord THEN '1' ELSE '' END, IFNULL(e2.flag, '')) AS gender_flag
+      FROM evo2 e2
+      LEFT JOIN evo1_raw e1 ON e1.slot = e2.slot AND e1.base_no = e2.base_no AND e1.gen = e2.gen
+),
+evo AS (
+    SELECT slot, base_no
+         , CONCAT(IFNULL(MAX(CASE WHEN gen = 'm' THEN gender_flag END), ''), ',',
+                  IFNULL(MAX(CASE WHEN gen = 'f' THEN gender_flag END), ''), ',',
+                  IFNULL(MAX(CASE WHEN gen = 'g' THEN gender_flag END), ''), ',') AS evo
+      FROM evo_per_gender
+     GROUP BY slot, base_no
+),
+dup_pivot AS (
+    SELECT base_no
+         , MAX(CASE WHEN slot = 'f' THEN dup END) AS pogo5fDup
+         , MAX(CASE WHEN slot = 's' THEN dup END) AS pogo5sDup
+         , MAX(CASE WHEN slot = 't' THEN dup END) AS pogo5tDup
+      FROM dup
+     GROUP BY base_no
+),
+evo_pivot AS (
+    SELECT base_no
+         , MAX(CASE WHEN slot = 'f' THEN TRIM(TRAILING ',' FROM evo) END) AS pogo5fEvo
+         , MAX(CASE WHEN slot = 's' THEN TRIM(TRAILING ',' FROM evo) END) AS pogo5sEvo
+         , MAX(CASE WHEN slot = 't' THEN TRIM(TRAILING ',' FROM evo) END) AS pogo5tEvo
+      FROM evo
+     GROUP BY base_no
+)
+SELECT bl.base_no
+     , pk.dv
+     , pk.name
+     , dp.pogo5fDup
+     , ep.pogo5fEvo
+     , dp.pogo5sDup
+     , ep.pogo5sEvo
+     , dp.pogo5tDup
+     , ep.pogo5tEvo
+  FROM bas_list bl
+  JOIN pokedex pk ON pk.no = bl.base_no
+  LEFT JOIN dup_pivot dp ON dp.base_no = bl.base_no
+  LEFT JOIN evo_pivot ep ON ep.base_no = bl.base_no
+ WHERE dp.pogo5fDup IS NOT NULL
+    OR NULLIF(ep.pogo5fEvo, '') IS NOT NULL
+    OR dp.pogo5sDup IS NOT NULL
+    OR NULLIF(ep.pogo5sEvo, '') IS NOT NULL
+    OR dp.pogo5tDup IS NOT NULL
+    OR NULLIF(ep.pogo5tEvo, '') IS NOT NULL
+ ORDER BY pk.name
+    </select>
+
+</mapper>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ordinal.third.pogo.pokedex.mapper.PokedexJsonMapper">
+
+    <delete id="deleteAll">
+        DELETE FROM pokedex_json
+    </delete>
+
+    <insert id="insertBatch" parameterType="java.util.List">
+        INSERT INTO pokedex_json (
+            id, form_id, dex_nr, korean, attack, defense, stamina, pokemon_class, image, image_g2, dex_form_nr
+        ) VALUES 
+        <foreach collection="list" item="item" separator=",">
+        (
+            #{item.id}, #{item.formId}, #{item.dexNr}, #{item.korean}, #{item.attack}, #{item.defense}, #{item.stamina}, #{item.pokemonClass}, #{item.image}, #{item.imageG2}, #{item.dexFormNr}
+        )
+        </foreach>
+    </insert>
+
+    <select id="selectAll" resultType="ordinal.third.pogo.vo.PokedexJsonVO">
+        SELECT 
+            id, form_id, dex_nr, korean, attack, defense, stamina, pokemon_class, image, image_g2, dex_form_nr,
+            max_cp
+        FROM pokedex_json
+    </select>
+
+    <update id="updateEvolutionAndCp" parameterType="ordinal.third.pogo.vo.PokedexJsonVO">
+        UPDATE pokedex_json
+        SET 
+            max_cp = #{maxCp},
+            attack = #{attack},
+            defense = #{defense},
+            stamina = #{stamina},
+            image_g2 = #{imageG2}
+        WHERE id = #{id} AND form_id = #{formId}
+    </update>
+
+    <insert id="upsertPokedex">
+        INSERT INTO pokedex (
+            no, name, dv, rank_
+        ) VALUES (
+            #{no}, #{name}, #{dv}, #{rankNo}
+        )
+        ON DUPLICATE KEY UPDATE
+            name = #{name},
+            dv = #{dv},
+            rank_ = #{rankNo}
+    </insert>
+
+    <update id="updatePokedexStep3_1">
+        UPDATE pokedex
+        SET 
+            base_no = #{baseNo},
+            evl = #{evl},
+            gndr_rt = #{gndrRt}
+        WHERE no = #{no}
+    </update>
+</mapper>

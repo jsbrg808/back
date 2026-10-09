@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="ordinal.third.pogo.calcydex.mapper.CalcyDexMoveSetMapper">
+
+    <select id="selectTopRankedPokedexNos" resultType="java.lang.Integer">
+        SELECT no
+          FROM pokedex
+         WHERE rank_ BETWEEN 1 AND 205
+         ORDER BY rank_
+    </select>
+
+    <delete id="deleteAll">
+        DELETE FROM calcydex
+    </delete>
+
+    <insert id="insertBatch" parameterType="java.util.List">
+        INSERT INTO calcydex (
+            no, move_set_no, nrml_move, nrml_dv,
+            spcl_move, spcl_dv, dps, percent
+        ) VALUES
+        <foreach collection="list" item="item" separator=",">
+            (
+                #{item.no}, #{item.moveSetNo}, LEFT(#{item.nrmlMove}, 5), #{item.nrmlDv},
+                LEFT(#{item.spclMove}, 5), #{item.spclDv}, #{item.dps}, #{item.percent}
+            )
+        </foreach>
+    </insert>
+
+</mapper>

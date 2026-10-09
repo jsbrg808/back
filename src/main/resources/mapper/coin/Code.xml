@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ordinal.third.coin.mapper.CodeMapper">
+
+    <select id="list" resultType="CodeVO">
+        SELECT CODE_DIV  AS codeDiv
+             , CODE_NO   AS codeNo
+             , CODE_NAME AS codeName
+             , CODE_ETC  AS codeEtc
+          FROM CODE
+         WHERE CODE_DIV = 'CONT'
+         ORDER BY CODE_DIV, CODE_NO
+    </select>
+
+</mapper>

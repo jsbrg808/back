@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ordinal.third.pogo.excel.mapper.Pogo5yMapper">
+
+    <select id="list" resultType="Pogo5yVO">
+SELECT pk.rank_ AS rankNo
+     , pk.no
+     , pk.dv
+     , pk.name
+     , m1.nrml_move AS nrmlMove1
+     , m1.nrml_dv AS nrmlDv1
+     , m1.spcl_move AS spclMove1
+     , m1.spcl_dv AS spclDv1
+     , m2.nrml_move AS nrmlMove2
+     , m2.nrml_dv AS nrmlDv2
+     , m2.spcl_move AS spclMove2
+     , m2.spcl_dv AS spclDv2
+     , m3.nrml_move AS nrmlMove3
+     , m3.nrml_dv AS nrmlDv3
+     , m3.spcl_move AS spclMove3
+     , m3.spcl_dv AS spclDv3
+     , m4.nrml_move AS nrmlMove4
+     , m4.nrml_dv AS nrmlDv4
+     , m4.spcl_move AS spclMove4
+     , m4.spcl_dv AS spclDv4
+     , m5.nrml_move AS nrmlMove5
+     , m5.nrml_dv AS nrmlDv5
+     , m5.spcl_move AS spclMove5
+     , m5.spcl_dv AS spclDv5
+     , m6.nrml_move AS nrmlMove6
+     , m6.nrml_dv AS nrmlDv6
+     , m6.spcl_move AS spclMove6
+     , m6.spcl_dv AS spclDv6
+     , fm.IV AS fmIv
+     , fm.GNDR_LVL AS fmGndrLvl
+     , fm.NRML_MOVE AS fmNrmlMove
+     , fm.SPCL_MOVE AS fmSpclMove
+     , fs.IV AS fsIv
+     , fs.GNDR_LVL AS fsGndrLvl
+     , fs.NRML_MOVE AS fsNrmlMove
+     , fs.SPCL_MOVE AS fsSpclMove
+     , sm.IV AS smIv
+     , sm.GNDR_LVL AS smGndrLvl
+     , sm.NRML_MOVE AS smNrmlMove
+     , sm.SPCL_MOVE AS smSpclMove
+     , ss.IV AS ssIv
+     , ss.GNDR_LVL AS ssGndrLvl
+     , ss.NRML_MOVE AS ssNrmlMove
+     , ss.SPCL_MOVE AS ssSpclMove
+     , tm.IV AS tmIv
+     , tm.GNDR_LVL AS tmGndrLvl
+     , tm.NRML_MOVE AS tmNrmlMove
+     , tm.SPCL_MOVE AS tmSpclMove
+     , ts.IV AS tsIv
+     , ts.GNDR_LVL AS tsGndrLvl
+     , ts.NRML_MOVE AS tsNrmlMove
+     , ts.SPCL_MOVE AS tsSpclMove
+  FROM pokedex pk
+  LEFT JOIN calcydex m1 ON m1.no = pk.no AND m1.move_set_no = 1
+  LEFT JOIN calcydex m2 ON m2.no = pk.no AND m2.move_set_no = 2
+  LEFT JOIN calcydex m3 ON m3.no = pk.no AND m3.move_set_no = 3
+  LEFT JOIN calcydex m4 ON m4.no = pk.no AND m4.move_set_no = 4
+  LEFT JOIN calcydex m5 ON m5.no = pk.no AND m5.move_set_no = 5
+  LEFT JOIN calcydex m6 ON m6.no = pk.no AND m6.move_set_no = 6
+  LEFT JOIN pogo_5y fm ON fm.NO = pk.no AND fm.DV = 'FM'
+  LEFT JOIN pogo_5y fs ON fs.NO = pk.no AND fs.DV = 'FS'
+  LEFT JOIN pogo_5y sm ON sm.NO = pk.no AND sm.DV = 'SM'
+  LEFT JOIN pogo_5y ss ON ss.NO = pk.no AND ss.DV = 'SS'
+  LEFT JOIN pogo_5y tm ON tm.NO = pk.no AND tm.DV = 'TM'
+  LEFT JOIN pogo_5y ts ON ts.NO = pk.no AND ts.DV = 'TS'
+ WHERE pk.rank_ BETWEEN 1 AND 205
+ ORDER BY pk.rank_
+    </select>
+
+    <insert id="upsertPokedex4Cell">
+INSERT INTO pogo_5y (NO, DV, IV, GNDR_LVL, NRML_MOVE, SPCL_MOVE)
+VALUES (
+       #{no}
+     , #{dv}
+     , CASE WHEN #{field} = 'iv' THEN #{ivValue} ELSE NULL END
+     , CASE WHEN #{field} = 'gndr_lvl' THEN NULLIF(#{value}, '') ELSE NULL END
+     , CASE WHEN #{field} = 'nrml_move' THEN NULLIF(#{value}, '') ELSE NULL END
+     , CASE WHEN #{field} = 'spcl_move' THEN NULLIF(#{value}, '') ELSE NULL END
+)
+ON DUPLICATE KEY UPDATE
+       IV        = CASE WHEN #{field} = 'iv' THEN #{ivValue} ELSE IV END
+     , GNDR_LVL  = CASE WHEN #{field} = 'gndr_lvl' THEN NULLIF(#{value}, '') ELSE GNDR_LVL END
+     , NRML_MOVE = CASE WHEN #{field} = 'nrml_move' THEN NULLIF(#{value}, '') ELSE NRML_MOVE END
+     , SPCL_MOVE = CASE WHEN #{field} = 'spcl_move' THEN NULLIF(#{value}, '') ELSE SPCL_MOVE END
+    </insert>
+
+</mapper>

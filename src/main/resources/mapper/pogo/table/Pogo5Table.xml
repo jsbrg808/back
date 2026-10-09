@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="ordinal.third.pogo.table.mapper.Pogo5TableMapper">
+
+    <select id="list" resultType="Pogo5TableVO">
+        SELECT SRL_NO
+             , ALS
+             , FORM_NO
+             , ALPH
+             , (SELECT CASE
+                         WHEN P.GNDR = 'f' THEN COALESCE(NULLIF(TI.IMAGE_G2, ''), TI.IMAGE)
+                         ELSE TI.IMAGE
+                       END
+                  FROM pokedex_json TI
+                 WHERE TI.DEX_NR = P.NO AND TI.DEX_FORM_NR = P.FORM_NO) AS imgSrc
+             , CONCAT(NO, '_', FORM_NO, '_', GNDR) AS imgAlt
+          FROM ${tableName} P
+         ORDER BY SRL_NO DESC
+    </select>
+
+    <select id="listByNm" resultType="Pogo5TableVO">
+        SELECT SRL_NO
+             , ALS
+             , FORM_NO
+             , ALPH
+             , (SELECT CASE
+                         WHEN P.GNDR = 'f' THEN COALESCE(NULLIF(TI.IMAGE_G2, ''), TI.IMAGE)
+                         ELSE TI.IMAGE
+                       END
+                  FROM pokedex_json TI
+                 WHERE TI.DEX_NR = P.NO AND TI.DEX_FORM_NR = P.FORM_NO) AS imgSrc
+             , CONCAT(NO, '_', FORM_NO, '_', GNDR) AS imgAlt
+          FROM ${tableName} P
+         WHERE NO IN (
+                   SELECT no
+                     FROM pokedex
+                    WHERE name LIKE CONCAT(#{vo.srchNm}, '%')
+               )
+         ORDER BY SRL_NO DESC
+    </select>
+
+    <select id="listByBasNm" resultType="Pogo5TableVO">
+        SELECT SRL_NO
+             , ALS
+             , FORM_NO
+             , ALPH
+             , (SELECT CASE
+                         WHEN P.GNDR = 'f' THEN COALESCE(NULLIF(TI.IMAGE_G2, ''), TI.IMAGE)
+                         ELSE TI.IMAGE
+                       END
+                  FROM pokedex_json TI
+                 WHERE TI.DEX_NR = P.NO AND TI.DEX_FORM_NR = P.FORM_NO) AS imgSrc
+             , CONCAT(NO, '_', FORM_NO, '_', GNDR) AS imgAlt
+          FROM ${tableName} P
+         WHERE NO IN (
+                   SELECT no
+                     FROM pokedex
+                    WHERE base_no IN (
+                              SELECT base_no
+                                FROM pokedex
+                               WHERE name LIKE CONCAT(#{vo.srchNm}, '%')
+                          )
+               )
+         ORDER BY SRL_NO DESC
+    </select>
+
+    <select id="listByAlsChar" resultType="Pogo5TableVO">
+        SELECT SRL_NO
+             , ALS
+             , FORM_NO
+             , ALPH
+             , (SELECT CASE
+                         WHEN P.GNDR = 'f' THEN COALESCE(NULLIF(TI.IMAGE_G2, ''), TI.IMAGE)
+                         ELSE TI.IMAGE
+                       END
+                  FROM pokedex_json TI
+                 WHERE TI.DEX_NR = P.NO AND TI.DEX_FORM_NR = P.FORM_NO) AS imgSrc
+             , CONCAT(NO, '_', FORM_NO, '_', GNDR) AS imgAlt
+          FROM ${tableName} P
+         WHERE SUBSTRING(ALS, #{position}, 1) = #{value}
+         ORDER BY SRL_NO DESC
+    </select>
+
+    <insert id="append">
+        INSERT INTO ${tableName} (SRL_NO, ALS, FORM_NO, ALPH, GNDR, LVL, NO, IV)
+        VALUES (
+               (SELECT max_seq FROM (SELECT MAX(SRL_NO) + 1 AS max_seq FROM ${tableName}) AS t)
+             , #{vo.als}
+             , IFNULL(NULLIF(#{vo.formNo}, ''), 1)
+             , IFNULL(NULLIF(#{vo.alph}, ''), 0)
+             , #{vo.gender}
+             , #{vo.lvl}
+             , (SELECT no FROM pokedex WHERE name = #{vo.name})
+             , #{vo.iv}
+        )
+    </insert>
+
+    <update id="update">
+        UPDATE ${tableName}
+           SET ALS     = #{vo.als}
+             , FORM_NO = IFNULL(NULLIF(#{vo.formNo}, ''), 1)
+             , ALPH    = IFNULL(NULLIF(#{vo.alph}, ''), 0)
+             , GNDR    = #{vo.gender}
+             , LVL     = #{vo.lvl}
+             , NO      = (SELECT no FROM pokedex WHERE name = #{vo.name})
+             , IV      = #{vo.iv}
+         WHERE SRL_NO = #{vo.srlNo}
+    </update>
+
+    <delete id="delete">
+        DELETE FROM ${tableName}
+         WHERE SRL_NO = #{vo.srlNo}
+    </delete>
+
+    <update id="updateDec">
+        UPDATE ${tableName}
+           SET SRL_NO = SRL_NO - 1
+         WHERE SRL_NO > #{vo.srlNo}
+         ORDER BY SRL_NO ASC
+    </update>
+
+    <update id="updateInc">
+        UPDATE ${tableName}
+           SET SRL_NO = SRL_NO + 1
+         WHERE SRL_NO >= #{vo.srlNo}
+         ORDER BY SRL_NO DESC
+    </update>
+
+    <insert id="insert">
+        INSERT INTO ${tableName} (SRL_NO, ALS, FORM_NO, ALPH, GNDR, LVL, NO, IV)
+        VALUES (
+               #{vo.srlNo}
+             , #{vo.als}
+             , IFNULL(NULLIF(#{vo.formNo}, ''), 1)
+             , IFNULL(NULLIF(#{vo.alph}, ''), 0)
+             , #{vo.gender}
+             , #{vo.lvl}
+             , (SELECT no FROM pokedex WHERE name = #{vo.name})
+             , #{vo.iv}
+        )
+    </insert>
+
+</mapper>
