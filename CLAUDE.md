@@ -15,8 +15,14 @@ No frontend lives in this repo; `CorsConfig` opens `/api/**` to any `localhost:*
 
 - Run the app: `mvn spring-boot:run` (or `back.bat`, which just sets UTF-8 codepage and runs the same).
 - Build / package: `mvn clean package` (produces `target/back.jar`, lombok excluded from the fat jar per `pom.xml`).
-- Run tests: `mvn test`. There are currently no test sources under `src/test` — `jsoup` and `spring-boot-starter-test` are present as test-scope deps for when tests are added.
-- Run a single test: `mvn test -Dtest=ClassName#methodName` once tests exist.
+- Run tests: `mvn test`.
+- Run a single test: `mvn test -Dtest=ClassName#methodName`.
+
+## Testing convention
+
+- **Tests live under `src/test/java` mirroring the main package** and run with `mvn test`. Any time a source change adds or alters behavior, add or update a test covering that behavior in the same change — do not leave source edits untested.
+- Keep unit tests **pure**: no live DB, no real HTTP. Mock mapper/service collaborators with Mockito (`@ExtendWith(MockitoExtension.class)`), and use `@TempDir` for file-based tests (parsers, `PogoDataFileStore`). Avoid full Spring context (`@SpringBootTest`) tests — don't add them unless a wiring bug demands it.
+- Test targets so far: `PogoService` (als parsing + CRUD branching), `PokedexDataProcessor` (maxCp/evolution chains/code maps), `PokedexJsonParser`, `PokemonSpeciesCsvParser`, `CalcyDexMoveSetCalculator` (DPS/move-set selection), `PogoDataFileStore` (path validation/legacy copy). When touched, keep these covered.
 
 The app listens on port 8090 (`application.yml`) and expects a MariaDB instance at `jdbc:mariadb://localhost:3306/third` (credentials `scott`/`tiger` — local dev defaults, not secrets to protect).
 
