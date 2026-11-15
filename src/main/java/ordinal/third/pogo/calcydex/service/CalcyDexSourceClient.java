@@ -33,7 +33,7 @@ public class CalcyDexSourceClient {
             "https://d.apkpure.net/b/XAPK/tesmath.calcy?version=latest";
     static final String SOURCE_METADATA_PATH = "calcydex/source-calcy.properties";
     private static final Pattern VERSION_PATTERN =
-            Pattern.compile("_(\\d+(?:\\.\\d+)+)_APKPure\\.xapk", Pattern.CASE_INSENSITIVE);
+            Pattern.compile("_(\\d+(?:\\.\\d+)+[A-Za-z]*)_APKPure\\.xapk", Pattern.CASE_INSENSITIVE);
     private static final String BASE_APK_ENTRY = "tesmath.calcy.apk";
     private static final String GAMESTATS_ENTRY = "assets/gamestats/gamestats.db";
 
@@ -157,7 +157,7 @@ public class CalcyDexSourceClient {
         }
     }
 
-    private String version(URI uri) throws IOException {
+    static String version(URI uri) throws IOException {
         String query = uri.getRawQuery();
         if (query != null) {
             for (String parameter : query.split("&")) {
